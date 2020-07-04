@@ -144,9 +144,17 @@ promptInterface.question('? Name for project: ', projectName => {
 
     fs.copyFile('target' + path.sep + 'pure-min.css', cssDirFull + 'pure-min.css', (cssError) => {
         if (cssError) {
-            console.error('Error copying CSS files: ' + cssError);
+            console.error('Error copying Pure.css CSS file: ' + cssError);
         } else {
-            console.log('Copied CSS files.');
+            console.log('Copied Pure.css CSS file.');
+        }
+    });
+
+    fs.copyFile('target' + path.sep + 'target-styles.css', cssDirFull + 'styles.css', (cssError) => {
+        if (cssError) {
+            console.error('Error copying styles.css CSS file: ' + cssError);
+        } else {
+            console.log('Copied styles.css CSS file.');
         }
     });
 
