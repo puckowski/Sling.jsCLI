@@ -1,6 +1,7 @@
 const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
+const { version } = require('./package.json');
 
 const createDir = (dirPath) => {
     fs.mkdir(process.cwd() + dirPath, { recursive: true }, (error) => {
@@ -22,26 +23,6 @@ const createFile = (filePath, fileContent) => {
     });
 }
 
-const fsReadFileHtml = (fileName) => {
-    return new Promise((resolve, reject) => {
-        const checkHtmlInterval = setInterval(() => {
-            const fileExists = fs.existsSync(fileName);
-
-            if (fileExists === true) {
-                clearInterval(checkHtmlInterval);
-
-                fs.readFile(fileName, 'utf8', (error, htmlString) => {
-                    if (!error && htmlString) {
-                        resolve(htmlString);
-                    } else {
-                        reject(error);
-                    }
-                });
-            }
-        });
-    });
-}
-
 const fsReadFile = (fileName) => {
     return new Promise((resolve, reject) => {
         const checkInterval = setInterval(() => {
@@ -58,7 +39,7 @@ const fsReadFile = (fileName) => {
                     }
                 });
             }
-        });
+        }, 50);
     });
 }
 
@@ -142,7 +123,7 @@ promptInterface.question('? Name for project: ', projectName => {
         }
     });
 
-    fsReadFileHtml(srcDirFull + 'index.html')
+    fsReadFile(srcDirFull + 'index.html')
         .then(html => {
             html = html.replace('<title></title>', '<title>' + projectName + '</title>');
 
@@ -197,6 +178,23 @@ promptInterface.question('? Name for project: ', projectName => {
         })
         .catch(error => {
             console.error('Error updating package.json name.');
+        });
+
+    fsReadFile(projectDirFull + 'README.md')
+        .then(readmeMarkdown => {
+            readmeMarkdown = readmeMarkdown.replace('# My App', '# ' + projectName);
+            readmeMarkdown = readmeMarkdown.replace('Sling.js CLI', 'Sling.js CLI v' + version);
+
+            fs.writeFile(projectDirFull + 'README.md', readmeMarkdown, { encoding: 'utf8' }, function (error) {
+                if (error) {
+                    console.error('Error writing updated README.md information.');
+                } else {
+                    console.log('Updated README.md information.');
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error updating README.md information.');
         });
 
     promptInterface.close();

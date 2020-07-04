@@ -1,8 +1,0 @@
-# created by gitignorer
-# profile used: node
-*.sw*
-.DS_Store
-dist
-.cache
-node_modules
-npm-debug.log*
