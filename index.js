@@ -3,28 +3,22 @@ const fs = require('fs');
 const path = require('path');
 const { version } = require('./package.json');
 
-const createDir = (dirPath) => {
-    fs.mkdir(process.cwd() + dirPath, { recursive: true }, (error) => {
-        if (error) {
-            console.error('An error occurred: ', error);
-        } else {
-            console.log('Created directory: ' + dirPath);
-        }
-    });
+const createDirSync = (dirPath) => {
+    fs.mkdirSync(process.cwd() + dirPath, { recursive: true });
 }
 
-const createFile = (filePath, fileContent) => {
-    fs.writeFile(filepath, fileContent, (error) => {
-        if (error) {
-            console.error('An error occurred: ', error);
-        } else {
-            console.log('Created file: ' + filepath);
-        }
-    });
+const createFileSync = (filePath, fileContent) => {
+    fs.writeFileSync(filepath, fileContent, { encoding: 'utf8' });
 }
 
 const fsReadFile = (fileName) => {
+    const INTERVAL_MILLIS = 50;
+
     return new Promise((resolve, reject) => {
+        const CHECK_COUNT_MAX = (1000 / INTERVAL_MILLIS) * 5; // 5 seconds
+
+        let checkCount = 0;
+
         const checkInterval = setInterval(() => {
             const fileExists = fs.existsSync(fileName);
 
@@ -39,7 +33,15 @@ const fsReadFile = (fileName) => {
                     }
                 });
             }
-        }, 50);
+
+            checkCount++;
+
+            if (checkCount === CHECK_COUNT_MAX) {
+                clearInterval(checkInterval);
+
+                reject('Failed to read file: "' + fileName + '".');
+            }
+        }, INTERVAL_MILLIS);
     });
 }
 
@@ -48,7 +50,9 @@ const promptInterface = readline.createInterface({
     output: process.stdout
 });
 
-promptInterface.question('? Name for project: ', projectName => {
+console.log('Sling.js CLI v' + version);
+
+async function createProjectStructure(projectName) {
     console.log('Creating project structure for "' + projectName + '"...');
 
     const projectPath = path.sep + projectName + path.sep;
@@ -57,15 +61,25 @@ promptInterface.question('? Name for project: ', projectName => {
     const cssDir = srcDir + 'css' + path.sep;
     const imageDir = srcDir + 'images' + path.sep;
 
-    createDir(projectPath);
-    createDir(srcDir);
-    createDir(distDir);
-    createDir(cssDir);
-    createDir(imageDir);
+    createDirSync(projectPath);
+    createDirSync(srcDir);
+    createDirSync(distDir);
+    createDirSync(cssDir);
+    createDirSync(imageDir);
 
     const projectDirFull = process.cwd() + projectPath;
+    const srcDirFull = process.cwd() + srcDir;
+    const cssDirFull = process.cwd() + cssDir;
+    const imageDirFull = process.cwd() + imageDir;
 
-    fs.copyFile('target' + path.sep + '.gitignore', projectDirFull + '.gitignore', (gitIgnoreError) => {
+    const targetDir = 'target' + path.sep;
+    const targetConfigDir = targetDir + 'config' + path.sep;
+    const targetDocsDir = targetDir + 'docs' + path.sep;
+    const targetSrcDir = targetDir + 'src' + path.sep;
+    const targetCssDir = targetDir + 'css' + path.sep;
+    const targetImageDir = targetDir + 'images' + path.sep;
+
+    fs.copyFile(targetConfigDir + '.gitignore', projectDirFull + '.gitignore', (gitIgnoreError) => {
         if (gitIgnoreError) {
             console.error('Error copying .gitignore file: ' + gitIgnoreError);
         } else {
@@ -73,7 +87,7 @@ promptInterface.question('? Name for project: ', projectName => {
         }
     });
 
-    fs.copyFile('target' + path.sep + '.eslintrc', projectDirFull + '.eslintrc', (eslintError) => {
+    fs.copyFile(targetConfigDir + '.eslintrc', projectDirFull + '.eslintrc', (eslintError) => {
         if (eslintError) {
             console.error('Error copying .eslintrc file: ' + eslintError);
         } else {
@@ -81,7 +95,7 @@ promptInterface.question('? Name for project: ', projectName => {
         }
     });
 
-    fs.copyFile('target' + path.sep + 'webpack.config.js', projectDirFull + 'webpack.config.js', (webpackError) => {
+    fs.copyFile(targetConfigDir + 'webpack.config.js', projectDirFull + 'webpack.config.js', (webpackError) => {
         if (webpackError) {
             console.error('Error copying webpack.config.js file: ' + webpackError);
         } else {
@@ -89,7 +103,7 @@ promptInterface.question('? Name for project: ', projectName => {
         }
     });
 
-    fs.copyFile('target' + path.sep + 'target-package.json', projectDirFull + 'package.json', (packageError) => {
+    fs.copyFile(targetConfigDir + 'target-package.json', projectDirFull + 'package.json', (packageError) => {
         if (packageError) {
             console.error('Error copying package.json file: ' + packageError);
         } else {
@@ -97,7 +111,7 @@ promptInterface.question('? Name for project: ', projectName => {
         }
     });
 
-    fs.copyFile('target' + path.sep + 'target-README.md', projectDirFull + 'README.md', (readmeError) => {
+    fs.copyFile(targetDocsDir + 'target-README.md', projectDirFull + 'README.md', (readmeError) => {
         if (readmeError) {
             console.error('Error copying README.md file: ' + readmeError);
         } else {
@@ -105,9 +119,7 @@ promptInterface.question('? Name for project: ', projectName => {
         }
     });
 
-    const srcDirFull = process.cwd() + srcDir;
-
-    fs.copyFile('target' + path.sep + 'target-index.js', srcDirFull + 'index.js', (indexJsError) => {
+    fs.copyFile(targetSrcDir + 'target-index.js', srcDirFull + 'index.js', (indexJsError) => {
         if (indexJsError) {
             console.error('Error copying index.js file: ' + indexJsError);
         } else {
@@ -115,11 +127,35 @@ promptInterface.question('? Name for project: ', projectName => {
         }
     });
 
-    fs.copyFile('target' + path.sep + 'target-index.html', srcDirFull + 'index.html', (indexHtmlError) => {
+    fs.copyFile(targetSrcDir + 'target-index.html', srcDirFull + 'index.html', (indexHtmlError) => {
         if (indexHtmlError) {
             console.error('Error copying index.html file: ' + indexHtmlError);
         } else {
             console.log('Copied index.html file.');
+        }
+    });
+
+    fs.copyFile(targetCssDir + 'pure-min.css', cssDirFull + 'pure-min.css', (cssError) => {
+        if (cssError) {
+            console.error('Error copying Pure.css CSS file: ' + cssError);
+        } else {
+            console.log('Copied Pure.css CSS file.');
+        }
+    });
+
+    fs.copyFile(targetCssDir + 'target-styles.css', cssDirFull + 'styles.css', (cssError) => {
+        if (cssError) {
+            console.error('Error copying styles.css CSS file: ' + cssError);
+        } else {
+            console.log('Copied styles.css CSS file.');
+        }
+    });
+
+    fs.copyFile(targetImageDir + 'favicon.png', imageDirFull + 'favicon.png', (faviconError) => {
+        if (faviconError) {
+            console.error('Error copying favicon.png file: ' + faviconError);
+        } else {
+            console.log('Copied favicon.png file.');
         }
     });
 
@@ -137,36 +173,8 @@ promptInterface.question('? Name for project: ', projectName => {
         })
         .catch(error => {
             console.error('Error updating index.html <title>.');
-            console.log(error);
+            console.error(error);
         });
-
-    const cssDirFull = process.cwd() + cssDir;
-
-    fs.copyFile('target' + path.sep + 'pure-min.css', cssDirFull + 'pure-min.css', (cssError) => {
-        if (cssError) {
-            console.error('Error copying Pure.css CSS file: ' + cssError);
-        } else {
-            console.log('Copied Pure.css CSS file.');
-        }
-    });
-
-    fs.copyFile('target' + path.sep + 'target-styles.css', cssDirFull + 'styles.css', (cssError) => {
-        if (cssError) {
-            console.error('Error copying styles.css CSS file: ' + cssError);
-        } else {
-            console.log('Copied styles.css CSS file.');
-        }
-    });
-
-    const imageDirFull = process.cwd() + imageDir;
-
-    fs.copyFile('target' + path.sep + 'favicon.png', imageDirFull + 'favicon.png', (faviconError) => {
-        if (faviconError) {
-            console.error('Error copying favicon.png file: ' + faviconError);
-        } else {
-            console.log('Copied favicon.png file.');
-        }
-    });
 
     fsReadFile(projectDirFull + 'package.json')
         .then(jsonDataRaw => {
@@ -186,6 +194,7 @@ promptInterface.question('? Name for project: ', projectName => {
         })
         .catch(error => {
             console.error('Error updating package.json name.');
+            console.error(error);
         });
 
     fsReadFile(projectDirFull + 'README.md')
@@ -203,7 +212,10 @@ promptInterface.question('? Name for project: ', projectName => {
         })
         .catch(error => {
             console.error('Error updating README.md information.');
+            console.error(error);
         });
 
     promptInterface.close();
-});
+}
+
+promptInterface.question('? Name for project: ', projectName => createProjectStructure(projectName));
