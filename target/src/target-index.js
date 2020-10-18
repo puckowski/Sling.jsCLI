@@ -8,7 +8,8 @@ class HelloWorldComponent {
         return markup('h1', {
             attrs: {
                 style: 'color: #808080;',
-                class: 'div-content'
+                class: 'div-content',
+                id: 'tagHello'
             },
             children: [
                 textNode('Sling.js v' + version())
@@ -18,4 +19,4 @@ class HelloWorldComponent {
 }
 
 const helloComponent = new HelloWorldComponent();
-mount('divHello', helloComponent);
+mount('tagHello', helloComponent);

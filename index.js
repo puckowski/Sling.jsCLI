@@ -248,12 +248,29 @@ async function createInternationalizationStructure(projectName) {
     createDirSync(storesDir);
 
     const servicesDirFull = process.cwd() + servicesDir;
+    const componentsDirFull = process.cwd() + componentsDir;
 
     fs.copyFile(targetSrcDir + 'target-translation.service.js', servicesDirFull + 'translation.service.js', (translationJsError) => {
         if (translationJsError) {
             console.error('Error copying translation.service.js file: ' + translationJsError);
         } else {
             console.log('Copied translation.service.js file.');
+        }
+    });
+
+    fs.copyFile(targetSrcDir + 'target-hello-world.component.js', componentsDirFull + 'hello-world.component.js', (helloJsError) => {
+        if (helloJsError) {
+            console.error('Error copying hello-world.component.js file: ' + helloJsError);
+        } else {
+            console.log('Copied hello-world.component.js file.');
+        }
+    });
+
+    fs.copyFile(targetSrcDir + 'target-language-toggle.component.js', componentsDirFull + 'language-toggle.component.js', (toggleJsError) => {
+        if (toggleJsError) {
+            console.error('Error copying language-toggle.component.js file: ' + toggleJsError);
+        } else {
+            console.log('Copied language-toggle.component.js file.');
         }
     });
 
