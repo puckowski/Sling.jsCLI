@@ -1,6 +1,4 @@
-import { initialize, markup, textNode, version, mount } from '../node_modules/slingjs/sling.min';
-
-initialize();
+import { markup, textNode, version, mount } from '../node_modules/slingjs/sling.min';
 
 class HelloWorldComponent {
 
