@@ -30,7 +30,7 @@
     "webpack": "^5.52.0",
     "webpack-cli": "^4.8.0",
     "webpack-dev-server": "^4.9.3",
-    "slingjs": "^18.4.0",
+    "slingjs": "^18.4.2",
     "babel-eslint": "^10.1.0"
   },
   "dependencies": {
